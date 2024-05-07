@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.historyWindow = HistoryWindow(self)
 
         windowTitle = WindowTitleBar(self)
-        btn_close = Button(self, CLOSE_ICON, self.width() - 30, 0, 30, 30, "btn_red_transp", self.closeWindow)
+        btn_close = Button(self, CLOSE_ICON, self.width() - 30, 0, 30, 30, "btn_red_transp", self.closeEvent)
         btn_close.setToolTip("Закрыть окно")
         btn_hide = Button(self, HIDE_ICON, self.width() - 60, 0, 30, 30, "btn_standart_transp", self.hide)
         btn_hide.setToolTip("Свернуть окно")
@@ -53,17 +53,18 @@ class MainWindow(QMainWindow):
         self.__edit_toLang = TextEdit(self, 5, labelForButtons.pos().y() + labelForButtons.height() + 5, self.width() - 10, 170, "entryArea")
         self.__edit_pron = TextEdit(self, 5, self.__edit_toLang.pos().y() + self.__edit_toLang.height() + 5, self.width() - 10, 30, "entryArea")
 
-    def closeWindow(self):
+    def closeEvent(self, event) -> None:
         self.historyWindow.close()
         self.close()
+        self.historyWindow.saveDatabase()
 
-    def openHistoryWindow(self):
+    def openHistoryWindow(self) -> None:
         if self.historyWindow.isVisible():
             self.historyWindow.hide()
         else:
             self.historyWindow.show()
 
-    def changeWindowFlag(self):
+    def changeWindowFlag(self) -> None:
         self.__windowOnTop = not self.__windowOnTop
         self.hide()
         if self.__windowOnTop:
@@ -76,31 +77,35 @@ class MainWindow(QMainWindow):
             self.__btn_changeFlag.setIcon(UNFIXED_ICON)
         self.show()
 
-    def clearEditArea(self):
+    def clearEditArea(self) -> None:
         self.__edit_fromLang.clear()
         self.__edit_toLang.clear()
         self.__edit_pron.clear()
 
-    def insertIntoEdit(self, data: str):
+    def insertIntoEdit(self, data: str) -> None:
         self.clearEditArea()
         temp_data = data.split(" - ")
         self.__edit_fromLang.setPlainText(temp_data[0])
         self.__edit_toLang.setPlainText(temp_data[1])
-        if temp_data[2] != "None":
-            self.__edit_pron.setPlainText(temp_data[2])
-
-    def translate(self, dest_lang):
-        txt = self.__edit_fromLang.toPlainText()
         try:
-            translatedText = trn.translate(txt, dest=dest_lang)
+            if temp_data[2] != "None":
+                self.__edit_pron.setPlainText(temp_data[2])
+        except Exception as ex: print(ex)
+
+    def translate(self, dest_lang) -> None:
+        txt = self.__edit_fromLang.toPlainText()
+        if txt != '':
+            try:
+                translatedText = trn.translate(txt, dest=dest_lang)
+            except Exception as exp:
+                translatedText = f"Что-то пошло не так >_<\n{exp}"
+
             self.__edit_toLang.setPlainText(translatedText.text)
             self.__edit_pron.setPlainText(translatedText.pronunciation)
+            self.historyWindow.addToDatabase(f"{txt} - {translatedText.text} - {translatedText.pronunciation}")
 
-            
-        
-        except Exception as exp:
-            print(exp)
-            self.__edit_toLang.setPlainText("Что-то пошло не так >_<")
+        else:
+            self.__edit_toLang.setPlainText("Там нечего переводить, хехе")
 
 if __name__ == "__main__":
     trn = Translator()

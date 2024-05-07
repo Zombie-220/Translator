@@ -8,7 +8,7 @@ class HistoryWindow(QtWidgets.QMainWindow):
     data : list[str] = 0
 
     def __init__(self, parent: QtWidgets.QMainWindow):
-        QtWidgets.QMainWindow.__init__(self)
+        super().__init__()
 
         self.parent = parent
         self.title = f"{parent.title} | История"
@@ -44,5 +44,38 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.__widget.setLayout(self.__vBox)
         self.__scrollArea.setWidget(self.__widget)
 
-    def scrollToBottom(self, min, max):
+        self.databaseData = self.readDatabase()
+        for i in range(len(self.databaseData)):
+            if self.databaseData[i] != '':
+                self.addHistoryButton(i)
+
+    def scrollToBottom(self, min, max) -> None:
         self.__scrollArea.verticalScrollBar().setValue(max)
+
+    def readDatabase(self) -> list[str]:
+        with open("history.txt", "r") as file:
+            data = file.read()
+            return data.split("\n")
+        
+    def addToDatabase(self, data: str) -> None:
+        self.databaseData.append(data)
+        self.addHistoryButton(len(self.databaseData) - 1)
+
+    def addHistoryButton(self, index: int) -> None:
+        btnData = self.databaseData[index].split(" - ")
+        btnText = f"{btnData[0]} - {btnData[1]}"
+        btn = Button(self, btnText, 0, 0, 0, 0, "btn_history", lambda ch, x=index: [self.parent.insertIntoEdit(self.databaseData[x])])
+        self.__vBox.addWidget(btn)
+        self.__scrollArea.setWidget(self.__widget)
+
+    def saveDatabase(self):
+        data = self.databaseData
+        if len(data) > 50:
+            while len(data) > 50:
+                data.pop(0)
+        x = ""
+        for i in range(len(data)):
+            if data[i] != '':
+                x += f"{data[i]}\n"
+        with open("history.txt", "w") as file:
+            file.write(x)
