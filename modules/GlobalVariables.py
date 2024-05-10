@@ -109,5 +109,10 @@ CSS = '''
     }
     QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
         background-color: rgb(21, 21, 21);
-    }    
+    }
+    QTableView::item:selected {
+        background: rgba(21, 21, 21, 0.5);
+        color: rgb(255, 255, 255);
+        border: 0px;
+    }
 '''

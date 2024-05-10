@@ -1,8 +1,0 @@
-привет - Hello - None
-как дела? - Wie geht es Ihnen? - None
-чем занимаещься? - What are you doing? - None
-чем занимаещься? - чем занимаешься? - chem zanimayesh'sya?
-проверка орфографии - spellchecking - None
-spellchecking - проверка орфографии - proverka orfografii
-тест - test - None
-Note: If you select “DD Image” option, you can create another partition on the USB drive, allowing you to use the rest of the space. Start -> Run (Windows + R) -> diskmgmt.msc -> Locate the USB drive -> Right-click in “Unallocated” -> New Simple Volume -> Follow the rest of the wizard with next, next, next… - Примечание. Если вы выберете опцию «DD Image», вы сможете создать еще один раздел на USB-накопителе, что позволит вам использовать остальное пространство. Пуск -> Выполнить (Windows + R) -> diskmgmt.msc -> Найдите USB-накопитель -> Щелкните правой кнопкой мыши «Нераспределенный» -> Новый простой том -> Следуйте остальной части мастера, выбирая «Далее», «Далее», «Далее…». - [[]]
