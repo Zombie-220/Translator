@@ -1,120 +1,226 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication, QHBoxLayout, QLineEdit
+from PyQt6.QtWidgets import QPushButton, QLabel, QLineEdit, QMainWindow, QApplication, QWidget, QPlainTextEdit
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import Qt, QSize
 import sys, os
 from googletrans import Translator
 
-from modules.SimpleModules import *
-from modules.GlobalVariables import *
+class Button(QPushButton):
+    def __init__(self, parent:QWidget, width:int, height:int, x_move:int, y_move:int, content:str|QIcon, objectName:str, command=None):
+        QPushButton.__init__(self,parent)
+        self.setFixedSize(width,height)
+        self.move(x_move,y_move)
+        self.setObjectName(objectName)
+        if type(content) == str:
+            self.setText(content)
+        elif type(content) == QIcon:
+            self.setIcon(content)
+        if command != None:
+            self.clicked.connect(command)
 
-# from modules.test_HistoryWindow import HistoryWindow
+class Label(QLabel):
+    def __init__(self,parent, width:int, height:int, x_move:int, y_move:int, text:str):
+        QLabel.__init__(self,parent)
+        self.setText(text)
+        self.setFixedSize(width,height)
+        self.move(x_move,y_move)
+
+class Entry(QPlainTextEdit):
+    def __init__(self,parent, width:int, height:int, x_move:int, y_move:int):
+        QPlainTextEdit.__init__(self,parent)
+        self.setFixedSize(width,height)
+        self.move(x_move,y_move)
+
+class WindowTopHat(QLabel):
+    css = '''
+    * {
+        background-color: rgb(21,21,21);
+        color: #FFF;
+        font: 14px;
+    }
+    '''
+    def __init__(self, parent):
+        QLabel.__init__(self, parent)
+        self.icon = QPixmap(Rf'{os.path.abspath(os.path.dirname(sys.argv[0]))}\images\icon.png').scaled(30,30,transformMode=Qt.TransformationMode.SmoothTransformation)
+        self.parent=parent
+        self.resize(parent.width(), 32)
+        self.move(0,0)
+        self.setStyleSheet(self.css)
+
+        self.labelLogo = QLabel(self)
+        self.labelLogo.setPixmap(self.icon)
+        self.labelLogo.setFixedSize(35,32)
+        self.labelName = Label(self,parent.width(),32,35,0,'Переводчик')
+
+    def mousePressEvent(self, LeftButton):
+        self.pos = LeftButton.pos()
+        self.main_pos = self.parent.pos()
+
+    def mouseMoveEvent(self, LeftButton):
+        self.last_pos = LeftButton.pos() - self.pos
+        self.main_pos += self.last_pos
+        self.parent.move(self.main_pos)
+
+class TranscriptionLine(QLabel):
+    def __init__(self, parent, name:str, y_move:int):
+        QLabel.__init__(self,parent)
+        self.chek(name)
+        self.move(15, y_move - self.height() + 4)
+        self.setText(f'{name} язык')
+        self.setFixedSize(150,28)
+        self.setStyleSheet(parent.css)
+
+        self.ent = Entry(parent, parent.width()-182, 92, 10, y_move)
+        self.trnTo = Label(parent, 150, 30, parent.width()-160, y_move-30, 'Перевести на:')
+        self.trnTo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.btn_Clear = Button(parent, 75, 20, parent.width()-247, y_move - self.height() + 4, self.names[3], 'btn_light_red', self.ent.clear)
+        self.btn0 = Button(parent, 150, 30, parent.width()-160, y_move, self.names[0], 'btn_ligth_grey')
+        self.btn1 = Button(parent, 150, 30, parent.width()-160, y_move+31, self.names[1], 'btn_ligth_grey')
+        self.btn2 = Button(parent, 150, 30, parent.width()-160, y_move+62, self.names[2], 'btn_ligth_grey')
+
+    def chek(self, name):
+        if name == 'Русский':
+            self.names = ['Английский', 'Немецкий', 'Японский', 'Очистить']
+        elif name == 'Английский':
+            self.names = ['Русский', 'Немецкий', 'Японский', 'Очистить']
+        elif name == 'Немецкий':
+            self.names = ['Русский', 'Английский', 'Японский', 'Очистить']
+        elif name == 'Японский':
+            self.names = ['Русский', 'Английский', 'Немецкий', 'Очистить']
 
 class MainWindow(QMainWindow):
-    def __init__(self, title: str, icon:QPixmap):
-        super().__init__()
-        self.setFixedSize(720, 470)
-        self.setWindowTitle(title)
+    css = '''
+    QMainWindow {
+        background: rgb(38,38,38);
+        border: 2px solid rgb(21,21,21);
+    }
+    QLabel {
+        color: #FFF;
+        font-size: 16px;
+    }
+    Entry, QLineEdit {
+        color: #FFF;
+        font-size: 16px;
+        background: rgb(50,50,50);
+        border-radius: 5px;
+        padding: 0px 5px 0px;
+        border: 1px solid rgb(21,21,21);
+        selection-background-color: rgb(21,21,21);
+    }
+    #btn_light_red {
+        background: rgba(200,0,0,1);
+        border-radius: 5px;
+        border: 1px solid rgb(21,21,21);
+    }
+    #btn_light_red:hover {
+        background: rgba(200,0,0,0.7);
+    }
+    #btn_light_red:pressed {
+        background: rgba(200,0,0,0.4);
+    }
+    #btn_ligth_grey {
+        background: rgba(50,50,50,1);
+        color: rgb(255,255,255);
+        border-radius: 5px;
+        border: 1px solid rgb(21,21,21);
+    }
+    #btn_ligth_grey:hover {
+        background: rgba(50,50,50,0.7);
+    }
+    #btn_ligth_grey:pressed {
+        background: rgba(50,50,50,0.4);
+    }
+    QScrollBar:vertical {
+        background: #151515;
+        width: 7px;
+    }
+    QScrollBar::handle:vertical {
+        background: rgba(255,255,255,1);
+        border-radius: 3px;
+    }
+    QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+        background: #151515;
+    }
+    '''
+    def __init__(self, translator:Translator):
+        QMainWindow.__init__(self)
+        self.icon = QIcon(Rf'{os.path.abspath(os.path.dirname(sys.argv[0]))}\images\icon.png')
+        self.fixed_btn = QIcon(Rf'{os.path.abspath(os.path.dirname(sys.argv[0]))}\images\office_button.png')
+        self.unfixed_btn = QIcon(Rf'{os.path.abspath(os.path.dirname(sys.argv[0]))}\images\no_office_button.png')
+        self.close_icon = QIcon(Rf'{os.path.abspath(os.path.dirname(sys.argv[0]))}\images\close.png')
+        self.hide_icon = QIcon(Rf'{os.path.abspath(os.path.dirname(sys.argv[0]))}\images\hide.png')
+
+        self.screenSize = QApplication.primaryScreen().availableGeometry()
+        self.setGeometry((self.screenSize.width()//2)-(self.width()//2), (self.screenSize.height()//2)-(self.height()//2), 700, 565)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setWindowIcon(QIcon(APP_ICON))
+        self.setWindowTitle('Переводчик')
+        self.setWindowIcon(self.icon)
+        self.setStyleSheet(self.css)
 
-        self.__windowOnTop = False
-        self.title = title
-        self.icon = icon
-        self.setObjectName("MainWindow")
-        self.setStyleSheet(CSS)
-        self.setWindowIcon(QIcon(self.icon))
+        self.hat = WindowTopHat(self)
+        self.btnClose = Button(self,28,28,self.width()-30,2,self.close_icon,'btn_light_red',self.close)
+        self.btnClose.setIconSize(QSize(12,12))
+        self.btnHide = Button(self, 28,28,self.width()-60,2,self.hide_icon,'btn_ligth_grey',self.showMinimized)
+        self.btnHide.setIconSize(QSize(20,20))
+        self.btnFixed = Button(self,28,28,self.width()-90,2,self.unfixed_btn,'btn_ligth_grey',self.fix_unfix)
 
-        # self.historyWindow = HistoryWindow(self)
+        self.trn_line1 = TranscriptionLine(self, 'Русский',65)
+        self.trn_line2 = TranscriptionLine(self, 'Английский',197)
+        self.trn_line3 = TranscriptionLine(self, 'Немецкий',329)
 
-        windowTitle = WindowTitleBar(self)
-        btn_close = Button(self, CLOSE_ICON, self.width() - 30, 0, 30, 30, "btn_red_transp", self.closeEvent)
-        btn_close.setToolTip("Закрыть окно")
-        btn_hide = Button(self, HIDE_ICON, self.width() - 60, 0, 30, 30, "btn_standart_transp", self.showMinimized)
-        btn_hide.setToolTip("Свернуть окно")
-        self.__btn_changeFlag = Button(self, UNFIXED_ICON ,self.width() - 90, 0, 30, 30, "btn_standart_transp", self.changeWindowFlag)
-        self.__btn_changeFlag.setToolTip("Закрепить окно")
-        # btn_openHistoryWindow = Button(self, HISTORY_ICON, self.width() - 120, 0, 30, 30, "btn_standart_transp", self.openHistoryWindow)
-        # btn_openHistoryWindow.setToolTip("Открыть историю")
+        self.trn_line4 = TranscriptionLine(self, 'Японский',461)
+        self.trn_line4.ent.setFixedSize(self.trn_line4.ent.width(), 62)
+        self.jap_lab = Label(self, 150,25,15,self.height()-37,'Произношение:')
+        self.jap_pron = QLineEdit(self)
+        self.jap_pron.setFixedSize(self.width()-332, 28)
+        self.jap_pron.move(self.width()-540, self.height()-40)
+        self.trn_line4.btn_Clear.clicked.connect(self.jap_pron.clear)
 
-        self.__edit_fromLang = TextEdit(self, 5, windowTitle.height() + 5, self.width() - 10, 170, "LineEntryArea")
+        self.trn_line1.btn0.clicked.connect(lambda: [self.translate(self.trn_line1.ent, 'en','ru')])
+        self.trn_line1.btn1.clicked.connect(lambda: [self.translate(self.trn_line1.ent, 'de','ru')])
+        self.trn_line1.btn2.clicked.connect(lambda: [self.translate(self.trn_line1.ent, 'ja','ru')])
+        self.trn_line2.btn0.clicked.connect(lambda: [self.translate(self.trn_line2.ent, 'ru','en')])
+        self.trn_line2.btn1.clicked.connect(lambda: [self.translate(self.trn_line2.ent, 'de','en')])
+        self.trn_line2.btn2.clicked.connect(lambda: [self.translate(self.trn_line2.ent, 'ja','en')])
+        self.trn_line3.btn0.clicked.connect(lambda: [self.translate(self.trn_line3.ent, 'ru','de')])
+        self.trn_line3.btn1.clicked.connect(lambda: [self.translate(self.trn_line3.ent, 'en','de')])
+        self.trn_line3.btn2.clicked.connect(lambda: [self.translate(self.trn_line3.ent, 'ja','de')])
+        self.trn_line4.btn0.clicked.connect(lambda: [self.translate(self.trn_line4.ent, 'ru','ja')])
+        self.trn_line4.btn1.clicked.connect(lambda: [self.translate(self.trn_line4.ent, 'en','ja')])
+        self.trn_line4.btn2.clicked.connect(lambda: [self.translate(self.trn_line4.ent, 'de','ja')])
 
-        btn_rusLang = Button(self, "Русский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('ru')])
-        btn_engLang = Button(self, "Английский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('en')])
-        btn_deuLang = Button(self, "Немецкий", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('de')])
-        # btn_japLang = Button(self, "Японский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('ja')])
-        btn_clear = Button(self, "Очистить", 0, 0, 0, 0, "btn_red", self.clearEditArea)
-        labelForButtons = Label(self, 5, self.__edit_fromLang.pos().y() + self.__edit_fromLang.height() + 5, self.width() - 10, 40, "label", "")
-        vBox = QHBoxLayout()
-        vBox.addWidget(btn_rusLang)
-        vBox.addWidget(btn_engLang)
-        vBox.addWidget(btn_deuLang)
-        # vBox.addWidget(btn_japLang)
-        vBox.addWidget(btn_clear)
-        labelForButtons.setLayout(vBox)
+    def translate(self, text_label, dest_language, lang):
+        txt = text_label.toPlainText()
+        try:
+            if dest_language == "ru":
+                self.trn_line1.ent.setPlainText(myTranslator.translate(txt, src=lang, dest=dest_language).text)
+            elif dest_language == "en":
+                self.trn_line2.ent.setPlainText(myTranslator.translate(txt, src=lang, dest=dest_language).text)
+            elif dest_language == "de":
+                self.trn_line3.ent.setPlainText(myTranslator.translate(txt, src=lang, dest=dest_language).text)
+            elif dest_language == "ja":
+                self.trn_line4.ent.setPlainText(myTranslator.translate(txt, src=lang, dest=dest_language).text)
+                self.jap_pron.setText(myTranslator.translate(txt, src=lang, dest=dest_language).pronunciation)
+        except Exception as exp:
+            text_label.setPlainText(str(exp))
 
-        self.__edit_toLang = TextEdit(self, 5, labelForButtons.pos().y() + labelForButtons.height() + 5, self.width() - 10, 170, "LineEntryArea")
-        # self.__edit_pron = TextEdit(self, 5, self.__edit_toLang.pos().y() + self.__edit_toLang.height() + 5, self.width() - 10, 30, "LineEntryArea")
-        self.__edit_pron = LineEntry(self, 5, self.__edit_toLang.pos().y() + self.__edit_toLang.height() + 5, self.width() - 10, 30, "", False, "LineEntryArea")
-        self.__edit_pron.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-    def closeEvent(self, event) -> None:
-        # self.historyWindow.close()
-        self.close()
-        # self.historyWindow.saveDatabase()
-
-    # def openHistoryWindow(self) -> None:
-    #     if self.historyWindow.isVisible():
-    #         self.historyWindow.hide()
-    #     else:
-    #         self.historyWindow.show()
-
-    def changeWindowFlag(self) -> None:
-        self.__windowOnTop = not self.__windowOnTop
-        self.hide()
-        if self.__windowOnTop:
+    def fix_unfix(self):
+        if self.windowFlags() == 2049:
+            self.hide()
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-            self.__btn_changeFlag.setToolTip("Открепить окно")
-            self.__btn_changeFlag.setIcon(FIXED_ICON)
+            self.btnFixed.setIcon(self.fixed_btn)
+            self.show()
         else:
-            self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-            self.__btn_changeFlag.setToolTip("Закрепить окно")
-            self.__btn_changeFlag.setIcon(UNFIXED_ICON)
-        self.show()
+            self.hide()
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowStaysOnTopHint)
+            self.btnFixed.setIcon(self.unfixed_btn)
+            self.show()
 
-    def clearEditArea(self) -> None:
-        self.__edit_fromLang.clear()
-        self.__edit_toLang.clear()
-        self.__edit_pron.clear()
+if __name__ == '__main__':
+    myTranslator = Translator()
 
-    def insertIntoEdit(self, data: str) -> None:
-        self.clearEditArea()
-        temp_data = data.split(" - ")
-        self.__edit_fromLang.setPlainText(temp_data[0])
-        self.__edit_toLang.setPlainText(temp_data[1])
-        if temp_data[2] not in ["None", "[[]]"]:
-            self.__edit_pron.setText(temp_data[2])
-
-    def translate(self, dest_lang) -> None:
-        txt = self.__edit_fromLang.toPlainText()
-        if txt != '':
-            try: translatedText = trn.translate(txt, dest=dest_lang)
-            except Exception as exp: translatedText = f"Что-то пошло не так >_<\n{exp}"
-
-            self.__edit_toLang.setPlainText(translatedText.text)
-            if translatedText.pronunciation != [[]]:
-                self.__edit_pron.setText(translatedText.pronunciation)
-            # self.historyWindow.addToDatabase(f"{txt} - {translatedText.text} - {translatedText.pronunciation}")
-
-        else:
-            self.__edit_toLang.setPlainText("Там нечего переводить, хехе")
-
-if __name__ == "__main__":
-    trn = Translator()
     app = QApplication(sys.argv)
-    window = MainWindow("Переводчик", APP_ICON)
+    window = MainWindow(myTranslator)
     window.show()
     sys.exit(app.exec())
 
-    # изменение размера кнопок не под текст а под текст и ширину окна (перенос на другую строку)
-    # сохранение японских иероглифов в .txt - временно решено (просто удалил возможность перевода на японский)
-    # проверека орфографии - пока решил отказаться (слишком много новых модулей)
-
-# pyinstaller -w -F -i"images\APP_ICON.ico" main.py
+# cd Desktop\Python\translator && pyinstaller -w -F -i"images\icon.ico" main.py

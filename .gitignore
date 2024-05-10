@@ -1,6 +1,4 @@
 .vscode/
-modules/__pycache__/
 build/
 
-test_*
 main.spec
