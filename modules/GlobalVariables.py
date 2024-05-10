@@ -80,7 +80,7 @@ CSS = '''
     }
 
 
-    #entryArea {
+    #LineEntryArea {
         background-color: rgb(60,60,60);
         border: 0px;
         border-radius: 5px;

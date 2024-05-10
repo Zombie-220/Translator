@@ -4,8 +4,7 @@ class Button(QtWidgets.QPushButton):
     def __init__(self, parent: QtWidgets.QMainWindow, content: str | QtGui.QIcon,
                  x: int, y: int, width: int, height: int,
                  objectName: str, func = None):
-        
-        QtWidgets.QPushButton.__init__(self, parent)
+        super().__init__(parent)
         
         self.setGeometry(x, y, width, height)
         self.setObjectName(objectName)
@@ -24,8 +23,7 @@ class Label(QtWidgets.QLabel):
     def __init__(self, parent: QtWidgets.QMainWindow,
                  x: int, y: int, width: int, height: int,
                  objectName: str, content: str | QtGui.QPixmap):
-        
-        QtWidgets.QLabel.__init__(self, parent)
+        super().__init__(parent)
         
         self.setGeometry(x, y, width, height)
         self.setObjectName(objectName)
@@ -38,12 +36,12 @@ class Label(QtWidgets.QLabel):
 
 
 
-class Entry(QtWidgets.QLineEdit):
+class LineEntry(QtWidgets.QLineEdit):
     def __init__(self, parent: QtWidgets.QMainWindow,
                  x: int, y: int, width: int, height: int,
                  placeholder: str, readOnly: bool, objectName: str):
-        QtWidgets.QLineEdit.__init__(self, parent)
-
+        super().__init__(parent)
+        
         self.setGeometry(x, y, width, height)
         self.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.setObjectName(objectName)
@@ -60,7 +58,7 @@ class TextEdit(QtWidgets.QPlainTextEdit):
     def __init__(self, parent: QtWidgets.QMainWindow,
                  x: int, y: int, width: int, height: int,
                  objectName: str):
-        QtWidgets.QPlainTextEdit.__init__(self, parent)
+        super().__init__(parent)
         self.setFixedSize(width, height)
         self.move(x, y)
         self.setObjectName(objectName)
@@ -68,9 +66,8 @@ class TextEdit(QtWidgets.QPlainTextEdit):
 
 
 class WindowTitleBar(QtWidgets.QLabel):
-    def __init__(self, parent: QtWidgets.QMainWindow) -> None:
-
-        QtWidgets.QLabel.__init__(self, parent)
+    def __init__(self, parent: QtWidgets.QMainWindow):
+        super().__init__(parent)
         
         self.icon = parent.icon
 

@@ -5,8 +5,6 @@ from modules.GlobalVariables import CSS, CLOSE_ICON
 from modules.SimpleModules import WindowTitleBar, Button
 
 class HistoryWindow(QtWidgets.QMainWindow):
-    data : list[str] = 0
-
     def __init__(self, parent: QtWidgets.QMainWindow):
         super().__init__()
 
@@ -56,7 +54,7 @@ class HistoryWindow(QtWidgets.QMainWindow):
         with open("history.txt", "r") as file:
             data = file.read()
             return data.split("\n")
-        
+
     def addToDatabase(self, data: str) -> None:
         self.databaseData.append(data)
         self.addHistoryButton(len(self.databaseData) - 1)
@@ -68,7 +66,7 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.__vBox.addWidget(btn)
         self.__scrollArea.setWidget(self.__widget)
 
-    def saveDatabase(self):
+    def saveDatabase(self) -> None:
         data = self.databaseData
         if len(data) > 50:
             while len(data) > 50:
