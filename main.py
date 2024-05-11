@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         btn_close.setToolTip("Закрыть окно")
         btn_hide = Button(self, HIDE_ICON, self.width() - 60, 0, 30, 30, "btn_standart_transp", self.showMinimized)
         btn_hide.setToolTip("Свернуть окно")
-        self.__btn_changeFlag = Button(self, UNFIXED_ICON ,self.width() - 90, 0, 30, 30, "btn_standart_transp", self.changeWindowFlag)
+        self.__btn_changeFlag = Button(self, UNFIXED_ICON, self.width() - 90, 0, 30, 30, "btn_standart_transp", self.changeWindowFlag)
         self.__btn_changeFlag.setToolTip("Закрепить окно")
         btn_openHistoryWindow = Button(self, HISTORY_ICON, self.width() - 120, 0, 30, 30, "btn_standart_transp", self.openHistoryWindow)
         btn_openHistoryWindow.setToolTip("Открыть историю")
@@ -39,14 +39,12 @@ class MainWindow(QMainWindow):
         btn_rusLang = Button(self, "Русский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('ru')])
         btn_engLang = Button(self, "Английский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('en')])
         btn_deuLang = Button(self, "Немецкий", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('de')])
-        # btn_japLang = Button(self, "Японский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('ja')])
         btn_clear = Button(self, "Очистить", 0, 0, 0, 0, "btn_red", self.clearEditArea)
         labelForButtons = Label(self, 5, self.__edit_fromLang.pos().y() + self.__edit_fromLang.height() + 5, self.width() - 10, 40, "label", "")
         vBox = QHBoxLayout()
         vBox.addWidget(btn_rusLang)
         vBox.addWidget(btn_engLang)
         vBox.addWidget(btn_deuLang)
-        # vBox.addWidget(btn_japLang)
         vBox.addWidget(btn_clear)
         labelForButtons.setLayout(vBox)
 
@@ -111,8 +109,5 @@ if __name__ == "__main__":
     window = MainWindow("Переводчик", APP_ICON)
     window.show()
     sys.exit(app.exec())
-
-    # сохранение японских иероглифов в .txt - временно решено (просто удалил возможность перевода на японский)
-    # проверека орфографии - пока решил отказаться (слишком много новых модулей)
 
 # pyinstaller -w -F -i"images\APP_ICON.ico" main.py

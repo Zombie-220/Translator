@@ -1,7 +1,6 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
 
 from modules.GlobalVariables import CSS, CLOSE_ICON
-
 from modules.SimpleModules import WindowTitleBar, Button
 
 class HistoryWindow(QtWidgets.QMainWindow):
@@ -66,9 +65,7 @@ class HistoryWindow(QtWidgets.QMainWindow):
         data = self.databaseData[index].split(" - ")
         self.__scrollArea.insertRow(self.__scrollArea.rowCount())
         firstItem = QtWidgets.QTableWidgetItem(f"{data[0]}")
-        firstItem.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         secondItem = QtWidgets.QTableWidgetItem(f"{data[1]}")
-        secondItem.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.__scrollArea.setItem(self.__scrollArea.rowCount()-1, 0, firstItem)
         self.__scrollArea.setItem(self.__scrollArea.rowCount()-1, 1, secondItem)
 
