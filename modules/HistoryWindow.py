@@ -1,4 +1,5 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
+import sqlite3
 
 from modules.GlobalVariables import CSS, CLOSE_ICON
 from modules.SimpleModules import WindowTitleBar, Button
@@ -40,43 +41,49 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.__scrollArea.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.__scrollArea.cellDoubleClicked.connect(self.dblClickEvent)
 
-        self.databaseData = self.readDatabase()
-        for i in range(len(self.databaseData)):
-            if self.databaseData[i] != '':
-                self.addHistoryButton(i)
-        self.databaseData.pop(len(self.databaseData) - 1)
+        self.databaseConnect = sqlite3.connect("database.db")
+        self.__databaseCursor = self.databaseConnect.cursor()
+
+        databaseData = self.readDatabase()
+        for i in range(len(databaseData)):
+            self.addHistoryButton(i)
 
     def dblClickEvent(self, row, column) -> None:
-        self.parent.insertIntoEdit(self.databaseData[row])
+        self.__databaseCursor.execute('SELECT * FROM history WHERE id = ?', (row+1,))
+        data = self.__databaseCursor.fetchone()
+        self.parent.insertIntoEdit(f'{data[1]} - {data[2]} - {data[3]}')
 
     def scrollToBottom(self, min, max) -> None:
         self.__scrollArea.verticalScrollBar().setValue(max)
 
-    def readDatabase(self) -> list[str]:
-        with open("history.txt", "r") as file:
-            data = file.read()
-            return data.split("\n")
+    def readDatabase(self) -> list[tuple]:
+        self.__databaseCursor.execute("""
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                inputText TEXT NOT NULL,
+                outputText TEXT NOT NULL,
+                pronun TEXT NOT NULL          
+            )""")
+        self.__databaseCursor.execute("SELECT * FROM history")
+        data = self.__databaseCursor.fetchall()
+        return data
 
-    def addDataLine(self, data: str) -> None:
-        self.databaseData.append(data)
-        self.addHistoryButton(len(self.databaseData) - 1)
+    def addDataLine(self, insertedText: str, outputText: str, pronun: str) -> None:
+        if pronun != None: temp_pron = pronun
+        else: temp_pron = "None"
+        self.__databaseCursor.execute("INSERT INTO history (inputText, outputText, pronun) VALUES (?,?,?)", (insertedText, outputText, temp_pron))
+        self.databaseConnect.commit()
+        number = int(self.__databaseCursor.execute('SELECT COUNT(*) FROM history').fetchone()[0]) - 1
+        self.addHistoryButton(number)
 
     def addHistoryButton(self, index: int) -> None:
-        data = self.databaseData[index].split(" - ")
+        self.__databaseCursor.execute("SELECT * FROM history WHERE id = ?", (index+1,))
+        data = self.__databaseCursor.fetchone()
         self.__scrollArea.insertRow(self.__scrollArea.rowCount())
-        firstItem = QtWidgets.QTableWidgetItem(f"{data[0]}")
-        secondItem = QtWidgets.QTableWidgetItem(f"{data[1]}")
+        firstItem = QtWidgets.QTableWidgetItem(f"{data[1]}")
+        secondItem = QtWidgets.QTableWidgetItem(f"{data[2]}")
         self.__scrollArea.setItem(self.__scrollArea.rowCount()-1, 0, firstItem)
         self.__scrollArea.setItem(self.__scrollArea.rowCount()-1, 1, secondItem)
 
-    def saveDatabase(self) -> None:
-        data = self.databaseData
-        if len(data) > 50:
-            while len(data) > 50:
-                data.pop(0)
-        x = ""
-        for i in range(len(data)):
-            if data[i] != '':
-                x += f"{data[i]}\n"
-        with open("history.txt", "w") as file:
-            file.write(x)
+    def closeDatabaseConnect(self) -> None:
+        self.databaseConnect.close()

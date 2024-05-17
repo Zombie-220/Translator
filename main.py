@@ -55,7 +55,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         self.historyWindow.close()
         self.close()
-        self.historyWindow.saveDatabase()
+        self.historyWindow.closeDatabaseConnect()
 
     def openHistoryWindow(self) -> None:
         if self.historyWindow.isVisible():
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
             self.__edit_toLang.setPlainText(translatedText.text)
             if translatedText.pronunciation != [[]]:
                 self.__edit_pron.setText(translatedText.pronunciation)
-            self.historyWindow.addDataLine(f"{txt} - {translatedText.text} - {translatedText.pronunciation}")
+            self.historyWindow.addDataLine(txt, translatedText.text, translatedText.pronunciation)
         else:
             self.__edit_toLang.setPlainText("Там нечего переводить, хехе")
 
