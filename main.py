@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QApplication, QHBoxLayout
-import sys
 from googletrans import Translator
+import sys
+import traceback
 
 from modules.SimpleModules import *
 from modules.GlobalVariables import *
@@ -64,47 +65,55 @@ class MainWindow(QMainWindow):
             self.historyWindow.hide()
         else:
             self.historyWindow.show()
+            self.historyWindow.move(self.x()+35, self.y()+50)
 
     def changeWindowFlag(self) -> None:
         self.__windowOnTop = not self.__windowOnTop
         self.hide()
+        visible = False
+        if self.historyWindow.isVisible():
+            self.historyWindow.hide()
+            visible = True
         if self.__windowOnTop:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+            self.historyWindow.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
             self.__btn_changeFlag.setToolTip("Открепить окно")
             self.__btn_changeFlag.setIcon(FIXED_ICON)
         else:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+            self.historyWindow.setWindowFlags(Qt.WindowType.FramelessWindowHint)
             self.__btn_changeFlag.setToolTip("Закрепить окно")
             self.__btn_changeFlag.setIcon(UNFIXED_ICON)
         self.show()
+        if visible: self.historyWindow.show()
 
     def clearEditArea(self) -> None:
         self.__edit_fromLang.clear()
         self.__edit_toLang.clear()
         self.__edit_pron.clear()
 
-    def insertIntoEdit(self, data: str) -> None:
+    def insertIntoEdit(self, sourceLang: str, destLang: str, pronun: str) -> None:
         self.clearEditArea()
-        temp_data = data.split(" - ")
-        self.__edit_fromLang.setPlainText(temp_data[0])
-        self.__edit_toLang.setPlainText(temp_data[1])
-        if temp_data[2] not in ["None", "[[]]"]:
-            self.__edit_pron.setText(temp_data[2])
+        self.__edit_fromLang.setPlainText(sourceLang)
+        self.__edit_toLang.setPlainText(destLang)
+        if pronun not in ["None", "[[]]"]:
+            self.__edit_pron.setText(pronun)
 
     def translate(self, dest_lang) -> None:
-        txt = self.__edit_fromLang.toPlainText()
+        sourceText = self.__edit_fromLang.toPlainText()
         self.__edit_pron.clear()
-        if txt != '':
-            try: translatedText = trn.translate(txt, dest=dest_lang)
-            except Exception as exp: translatedText = f"Что-то пошло не так >_<\n{exp}"
-
-            self.__edit_toLang.setPlainText(translatedText.text)
-            if translatedText.pronunciation != [[]]:
-                self.__edit_pron.setText(translatedText.pronunciation)
-            self.historyWindow.addDataLine(txt, translatedText.text, translatedText.pronunciation)
+        if sourceText != '':
+            try:
+                translatedText = trn.translate(sourceText, dest=dest_lang)
+                self.__edit_toLang.setPlainText(translatedText.text)
+                if type(translatedText.pronunciation) != list:
+                    self.__edit_pron.setText(translatedText.pronunciation)
+                self.historyWindow.addDataLine(sourceText, translatedText.text, translatedText.pronunciation)
+            except Exception as exp:
+                self.__edit_toLang.setPlainText(f"Что-то пошло не так! >_<\n{traceback.format_exc()}")
         else:
             self.__edit_toLang.setPlainText("Там нечего переводить, хехе")
-# записывать по дате и заменять самую старую, при взятии данных тоже сортировать по давности
+
 if __name__ == "__main__":
     trn = Translator()
     app = QApplication(sys.argv)

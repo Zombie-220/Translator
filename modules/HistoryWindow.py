@@ -14,7 +14,6 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setWindowTitle(self.title)
         self.setWindowIcon(QtGui.QIcon(self.icon))
-        self.move(50, 50)
         self.setFixedSize(parent.width(), parent.height())
 
         self.setObjectName("HistoryWindow")
@@ -40,18 +39,19 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.__scrollArea.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.__scrollArea.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.__scrollArea.cellDoubleClicked.connect(self.dblClickEvent)
+        self.__scrollArea.verticalScrollBar().rangeChanged.connect(self.scrollToBottom)
 
         self.databaseConnect = sqlite3.connect("database.db")
         self.__databaseCursor = self.databaseConnect.cursor()
 
-        self.__databaseData = self.readDatabase()
-        for i in self.__databaseData:
+        databaseData = self.readDatabase()
+        for i in databaseData:
             self.addHistoryButton(i[1], i[2])
 
     def dblClickEvent(self, row, column) -> None:
-        self.__databaseCursor.execute('SELECT * FROM history WHERE id = ?', (row+1,))
+        self.__databaseCursor.execute('SELECT * FROM history WHERE id=?', (row+1,))
         data = self.__databaseCursor.fetchone()
-        self.parent.insertIntoEdit(f'{data[1]} - {data[2]} - {data[3]}')
+        self.parent.insertIntoEdit(data[1], data[2], data[3])
 
     def scrollToBottom(self, min, max) -> None:
         self.__scrollArea.verticalScrollBar().setValue(max)
@@ -69,23 +69,23 @@ class HistoryWindow(QtWidgets.QMainWindow):
         data = self.__databaseCursor.fetchall()
         return data
 
-    def addDataLine(self, insertedText: str, outputText: str, pronun: str) -> None:
-        if pronun != None: temp_pron = pronun
+    def addDataLine(self, insertedText: str, outputText: str, pronun: str|list) -> None:
+        if pronun != None and type(pronun) != list: temp_pron = pronun
         else: temp_pron = "None"
         
-        if len(self.__databaseData) >= 10:
-                self.__databaseCursor.execute("""
-                    UPDATE history SET inputText=?, outputText=?, pronun=?, time=DATETIME()
-                    WHERE id = (SELECT id FROM history ORDER BY time ASC)
-                """, (insertedText, outputText, temp_pron))
+        count = int(self.__databaseCursor.execute('SELECT COUNT(*) FROM history').fetchone()[0])
+        if count >= 50:
+                self.__databaseCursor.execute('''UPDATE history SET inputText=?, outputText=?, pronun=?, time=DATETIME()
+                                              WHERE id=(SELECT id FROM history ORDER BY time ASC)''',
+                                              (insertedText, outputText, temp_pron))
                 self.__scrollArea.removeRow(0)
         else:
             self.__databaseCursor.execute("INSERT INTO history (inputText, outputText, pronun, time) VALUES (?,?,?,DATETIME())",
                                           (insertedText, outputText, temp_pron))
         self.databaseConnect.commit()
-        self.addHistoryButton(int(self.__databaseCursor.execute('SELECT COUNT(*) FROM history').fetchone()[0]) - 1)
+        self.addHistoryButton(insertedText, outputText)
 
-    def addHistoryButton(self, sourceLang, destLang) -> None:
+    def addHistoryButton(self, sourceLang: str, destLang: str) -> None:
         self.__scrollArea.insertRow(self.__scrollArea.rowCount())
         firstItem = QtWidgets.QTableWidgetItem(f"{sourceLang}")
         secondItem = QtWidgets.QTableWidgetItem(f"{destLang}")
