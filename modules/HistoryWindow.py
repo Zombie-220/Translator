@@ -44,9 +44,9 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.databaseConnect = sqlite3.connect("database.db")
         self.__databaseCursor = self.databaseConnect.cursor()
 
-        databaseData = self.readDatabase()
-        for i in range(len(databaseData)):
-            self.addHistoryButton(i)
+        self.__databaseData = self.readDatabase()
+        for i in self.__databaseData:
+            self.addHistoryButton(i[1], i[2])
 
     def dblClickEvent(self, row, column) -> None:
         self.__databaseCursor.execute('SELECT * FROM history WHERE id = ?', (row+1,))
@@ -62,26 +62,33 @@ class HistoryWindow(QtWidgets.QMainWindow):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 inputText TEXT NOT NULL,
                 outputText TEXT NOT NULL,
-                pronun TEXT NOT NULL          
+                pronun TEXT NOT NULL,
+                time INTEGER NOT NULL
             )""")
-        self.__databaseCursor.execute("SELECT * FROM history")
+        self.__databaseCursor.execute("SELECT * FROM history ORDER BY time ASC")
         data = self.__databaseCursor.fetchall()
         return data
 
     def addDataLine(self, insertedText: str, outputText: str, pronun: str) -> None:
         if pronun != None: temp_pron = pronun
         else: temp_pron = "None"
-        self.__databaseCursor.execute("INSERT INTO history (inputText, outputText, pronun) VALUES (?,?,?)", (insertedText, outputText, temp_pron))
+        
+        if len(self.__databaseData) >= 10:
+                self.__databaseCursor.execute("""
+                    UPDATE history SET inputText=?, outputText=?, pronun=?, time=DATETIME()
+                    WHERE id = (SELECT id FROM history ORDER BY time ASC)
+                """, (insertedText, outputText, temp_pron))
+                self.__scrollArea.removeRow(0)
+        else:
+            self.__databaseCursor.execute("INSERT INTO history (inputText, outputText, pronun, time) VALUES (?,?,?,DATETIME())",
+                                          (insertedText, outputText, temp_pron))
         self.databaseConnect.commit()
-        number = int(self.__databaseCursor.execute('SELECT COUNT(*) FROM history').fetchone()[0]) - 1
-        self.addHistoryButton(number)
+        self.addHistoryButton(int(self.__databaseCursor.execute('SELECT COUNT(*) FROM history').fetchone()[0]) - 1)
 
-    def addHistoryButton(self, index: int) -> None:
-        self.__databaseCursor.execute("SELECT * FROM history WHERE id = ?", (index+1,))
-        data = self.__databaseCursor.fetchone()
+    def addHistoryButton(self, sourceLang, destLang) -> None:
         self.__scrollArea.insertRow(self.__scrollArea.rowCount())
-        firstItem = QtWidgets.QTableWidgetItem(f"{data[1]}")
-        secondItem = QtWidgets.QTableWidgetItem(f"{data[2]}")
+        firstItem = QtWidgets.QTableWidgetItem(f"{sourceLang}")
+        secondItem = QtWidgets.QTableWidgetItem(f"{destLang}")
         self.__scrollArea.setItem(self.__scrollArea.rowCount()-1, 0, firstItem)
         self.__scrollArea.setItem(self.__scrollArea.rowCount()-1, 1, secondItem)
 
