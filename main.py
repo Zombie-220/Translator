@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QApplication, QHBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QApplication, QHBoxLayout, QComboBox
 from googletrans import Translator
 import sys
 import traceback
@@ -34,6 +34,11 @@ class MainWindow(QMainWindow):
         self.__btn_changeFlag.setToolTip("Закрепить окно")
         btn_openHistoryWindow = Button(self, HISTORY_ICON, self.width() - 120, 0, 30, 30, "btn_standart_transp", self.openHistoryWindow)
         btn_openHistoryWindow.setToolTip("Открыть историю")
+
+        self.__languageCombo = QComboBox(self)
+        self.__languageCombo.setFixedSize(110,30)
+        self.__languageCombo.move(self.width() - self.__languageCombo.width() - 30 * 4, 0)
+        self.__languageCombo.addItems(["Авто", "Русский", "Английский", "Немецкий", "Японский"])
 
         self.__edit_fromLang = TextEdit(self, 5, windowTitle.height() + 5, self.width() - 10, 170, "LineEntryArea")
 
@@ -101,10 +106,23 @@ class MainWindow(QMainWindow):
 
     def translate(self, dest_lang) -> None:
         sourceText = self.__edit_fromLang.toPlainText()
+
+        match self.__languageCombo.currentText():
+            case "Авто":
+                src = "auto"
+            case "Русский":
+                src = "ru"
+            case "Английский":
+                src = "en"
+            case "Немецкий":
+                src = "de"
+            case "Японский":
+                src = "ja"
+
         self.__edit_pron.clear()
         if sourceText != '':
             try:
-                translatedText = trn.translate(sourceText, dest=dest_lang)
+                translatedText = trn.translate(sourceText, dest=dest_lang, src=src)
                 self.__edit_toLang.setPlainText(translatedText.text)
                 if type(translatedText.pronunciation) != list:
                     self.__edit_pron.setText(translatedText.pronunciation)

@@ -23,7 +23,7 @@ CSS = '''
         color: #FFF;
         font: 14px;
     }
-    #MainWindow, QToolTip, #HistoryWindow, #btn_history {
+    #MainWindow, QToolTip, #HistoryWindow, #btn_history, QComboBox, QComboBox QAbstractItemView {
         background-color: rgb(40, 40, 40);
         border: 1px solid rgb(21, 21, 21);
     }
