@@ -121,4 +121,4 @@ if __name__ == "__main__":
     window.show()
     sys.exit(app.exec())
 
-# pyinstaller -w -F -i"images\APP_ICON.ico" -n translator main.py
+# pyinstaller -w -F -i"images\APP_ICON.ico" -n "translator" main.py

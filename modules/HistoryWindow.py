@@ -38,7 +38,7 @@ class HistoryWindow(QtWidgets.QMainWindow):
         self.__scrollArea.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Fixed)
         self.__scrollArea.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.__scrollArea.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        self.__scrollArea.cellDoubleClicked.connect(self.dblClickEvent)
+        self.__scrollArea.viewport().installEventFilter(self)
         self.__scrollArea.verticalScrollBar().rangeChanged.connect(self.scrollToBottom)
 
         self.databaseConnect = sqlite3.connect("database.db")
@@ -48,10 +48,17 @@ class HistoryWindow(QtWidgets.QMainWindow):
         for i in databaseData:
             self.addHistoryButton(i[1], i[2])
 
-    def dblClickEvent(self, row, column) -> None:
-        self.__databaseCursor.execute('SELECT * FROM history WHERE id=?', (row+1,))
-        data = self.__databaseCursor.fetchone()
-        self.parent.insertIntoEdit(data[1], data[2], data[3])
+    def eventFilter(self, source: QtWidgets.QWidget, event: QtCore.QEvent):
+        if (event.type() == QtCore.QEvent.Type.MouseButtonDblClick and event.buttons() == QtCore.Qt.MouseButton.LeftButton):
+            item = self.__scrollArea.itemAt(event.pos())
+            shift = int(self.__databaseCursor.execute("SELECT id FROM history ORDER BY time").fetchone()[0])
+            if item.row()+shift > 50:
+                data = self.__databaseCursor.execute("SELECT * FROM history WHERE id=?", (item.row()+shift-50,)).fetchone()
+            else:
+                data = self.__databaseCursor.execute("SELECT * FROM history WHERE id=?", (item.row()+shift,)).fetchone()
+            self.parent.insertIntoEdit(data[1], data[2], data[3])
+
+        return super(HistoryWindow, self).eventFilter(source, event)
 
     def scrollToBottom(self, min, max) -> None:
         self.__scrollArea.verticalScrollBar().setValue(max)
