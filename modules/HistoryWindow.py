@@ -52,10 +52,8 @@ class HistoryWindow(QtWidgets.QMainWindow):
         if (event.type() == QtCore.QEvent.Type.MouseButtonDblClick and event.buttons() == QtCore.Qt.MouseButton.LeftButton):
             item = self.__scrollArea.itemAt(event.pos())
             shift = int(self.__databaseCursor.execute("SELECT id FROM history ORDER BY time").fetchone()[0])
-            if item.row()+shift > 50:
-                data = self.__databaseCursor.execute("SELECT * FROM history WHERE id=?", (item.row()+shift-50,)).fetchone()
-            else:
-                data = self.__databaseCursor.execute("SELECT * FROM history WHERE id=?", (item.row()+shift,)).fetchone()
+            if item.row()+shift > 50: data = self.__databaseCursor.execute("SELECT * FROM history WHERE id=?", (item.row()+shift-50,)).fetchone()
+            else: data = self.__databaseCursor.execute("SELECT * FROM history WHERE id=?", (item.row()+shift,)).fetchone()
             self.parent.insertIntoEdit(data[1], data[2], data[3])
 
         return super(HistoryWindow, self).eventFilter(source, event)
