@@ -41,6 +41,7 @@ class MainWindow(QMainWindow):
         self.__languageCombo.addItems(["Авто", "Русский", "Английский", "Немецкий", "Японский"])
 
         self.__edit_fromLang = TextEdit(self, 5, windowTitle.height() + 5, self.width() - 10, 170, "LineEntryArea")
+        self.__edit_fromLang.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
 
         btn_rusLang = Button(self, "Русский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('ru')])
         btn_engLang = Button(self, "Английский", 0, 0, 0, 0, "btn_standart", lambda: [self.translate('en')])
@@ -57,8 +58,10 @@ class MainWindow(QMainWindow):
         labelForButtons.setLayout(vBox)
 
         self.__edit_toLang = TextEdit(self, 5, labelForButtons.pos().y() + labelForButtons.height() + 5, self.width() - 10, 170, "LineEntryArea")
+        self.__edit_toLang.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.__edit_pron = LineEntry(self, 5, self.__edit_toLang.pos().y() + self.__edit_toLang.height() + 5, self.width() - 10, 30, "", False, "LineEntryArea")
         self.__edit_pron.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.__edit_pron.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
 
     def closeEvent(self, event) -> None:
         self.historyWindow.close()
